@@ -11,9 +11,15 @@ import java.util.Map;
 
 public class FrontController extends HttpServlet {
 	Map<String,Class> urlMap;
-    boolean isChecked;
+    boolean isChecked=false;
+
+    public void initValues()throws ServletException{
+        String controllPackage = this.getInitParameter("controllerRepository");
+        this.urlMap = Scanner.scanCurrentProjet(controllPackage);
+        isChecked=true;
+    }
     public void init() throws ServletException{
-        isChecked=false;
+        initValues();
     }
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     		requestUrl(request,response);	
@@ -23,9 +29,7 @@ public class FrontController extends HttpServlet {
     }
     public void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	if (!isChecked) {
-            String controllPackage = this.getInitParameter("controllerRepository");
-            this.urlMap = Scanner.scanCurrentProjet(controllPackage);
-            isChecked=true;
+            initValues();
         }
         PrintWriter out = response.getWriter();
         String url=request.getRequestURL().toString();
