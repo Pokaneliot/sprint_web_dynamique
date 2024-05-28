@@ -7,36 +7,37 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.PrintWriter;
 import java.util.Map;
-
+import mg.pokaneliot.util.Mapping;
+import mg.pokaneliot.util.Scanner;
 
 public class FrontController extends HttpServlet {
-	Map<String,Class> urlMap;
-    boolean isChecked=false;
+	Map<String,Mapping> urlMap;
 
-    public void initValues()throws ServletException{
+    public void init() throws ServletException{
         String controllPackage = this.getInitParameter("controllerRepository");
         this.urlMap = Scanner.scanCurrentProjet(controllPackage);
-        isChecked=true;
-    }
-    public void init() throws ServletException{
-        initValues();
     }
 	public void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    		requestUrl(request,response);	
+    	processRequest(request,response);	
     }
     public void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    		requestUrl(request,response);
+    	processRequest(request,response);
     }
     public void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-    	if (!isChecked) {
-            initValues();
-        }
-        PrintWriter out = response.getWriter();
+    	PrintWriter out = response.getWriter();
         String url=request.getRequestURL().toString();
     	out.print("vous êtes dans "+url+"\n");
-         out.print("Liste des controlleurs du projet : \n");
         for(String key : this.urlMap.keySet()){
-            out.print("L'url : "+ key +" est associé à la class "+ this.urlMap.get(key)+"\n");
+            int len=key.length()-1;
+            int urlLen=url.length()-1;
+            String urlkey=url.substring(urlLen-len,urlLen);
+            if (key.compare(urlkey)==0) {
+                Mapping map= this.urlMap.get(key);
+                out.print("L'url : "+ urlkey +" est associé à la methode "+map.getMethodName()+"dans la class "+map.getClassName()+"\n");
+            }
+            else{
+                out.print("L'url : "+ urlkey +" n'est pas associé à une methode dans une classe annotée controller \n");
+            }
         }
     }
 }

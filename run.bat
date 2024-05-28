@@ -12,7 +12,7 @@ javac -parameters -cp "%lib%/*";"%destinationClasses%" -d "%destinationClasses%"
 
 rem crée le fichier jar
 cd "%destinationClasses%"
-jar -cvf "../sprint1.jar" .
+jar -cvf "../sprint2.jar" .
 cd ..
 
 rem efface les dossiers temporaires

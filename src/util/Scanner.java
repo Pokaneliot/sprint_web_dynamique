@@ -1,17 +1,21 @@
-package mg.pokaneliot.controlleur;
+package mg.pokaneliot.util;
 
 import java.util.Map;
 import java.util.HashMap;
+import java.lang.reflect.Method;
 
-import mg.pokaneliot.annotation.AnnotationController;
+
+import mg.pokaneliot.annotation.Controller;
+import mg.pokaneliot.annotation.Get;
 
 public class Scanner {
-    public static Map<String,Class> scanCurrentProjet(String packageName){
-        Map<String,Class> res = new HashMap<>();
+    public static Map<String,Mapping> scanCurrentProjet(String packageName){
+        Map<String,Mapping> res = new HashMap<>();
         try{
             Thread currentThread = Thread.currentThread();
             ClassLoader classLoader = currentThread.getContextClassLoader();
             String path = packageName.replace(".", "/");
+            path = packageName.replace("%20", " ");
             java.net.URL ressource = classLoader.getResource(path);
             java.io.File directory = new java.io.File(ressource.getFile());
 
@@ -19,9 +23,9 @@ public class Scanner {
                 if(file.getName().endsWith(".class")){
                     String className = packageName + "."+ file.getName().substring(0,file.getName().length() - 6);
                     Class<?> cl = Class.forName(className);
-                    AnnotationController annot = cl.getAnnotation(AnnotationController.class);
+                    Controller annot = cl.getAnnotation(Controller.class);
                     if(annot != null){
-                        res.put(annot.url(),cl);
+                        setAnnotedMethod(res,cl);
                     }
                 }
             }
@@ -29,7 +33,15 @@ public class Scanner {
             e.printStackTrace();
         }
         return res;
-        
-
     }
+    public static void setAnnotedMethod(Map<String,Mapping> res,Class cl){
+        Method[] meths=cl.getMethods();
+        for (Method meth:meths ) {
+           Get annot_get=meth.getAnnotation(Get.class);
+           if (annot_get!=null) {
+               Mapping map=new Mapping(cl.getSimpleName(),meth.getName());
+               res.put(annot_get.url(),map);
+           }
+        } 
+    } 
 }
