@@ -35,11 +35,11 @@ public class Scanner {
         return res;
     }
     public static void setAnnotedMethod(Map<String,Mapping> res,Class cl){
-        Method[] meths=cl.getMethods();
+        Method[] meths=cl.getDeclaredMethods();
         for (Method meth:meths ) {
            Get annot_get=meth.getAnnotation(Get.class);
            if (annot_get!=null) {
-               Mapping map=new Mapping(cl.getSimpleName(),meth.getName());
+               Mapping map=new Mapping(cl.getName(),meth.getName());
                res.put(annot_get.url(),map);
            }
         } 
