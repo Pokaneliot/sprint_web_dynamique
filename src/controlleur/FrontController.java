@@ -26,6 +26,7 @@ public class FrontController extends HttpServlet {
     public void processRequest(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
     	PrintWriter out = response.getWriter();
         String url=request.getRequestURL().toString();
+        int check=0;
     	out.print("vous êtes dans "+url+"\n");
         for(String key : this.urlMap.keySet()){
             int len=key.length()-1;
@@ -34,10 +35,21 @@ public class FrontController extends HttpServlet {
             if (key.compare(urlkey)==0) {
                 Mapping map= this.urlMap.get(key);
                 out.print("L'url : "+ urlkey +" est associé à la methode "+map.getMethodName()+"dans la class "+map.getClassName()+"\n");
-            }
-            else{
-                out.print("L'url : "+ urlkey +" n'est pas associé à une methode dans une classe annotée controller \n");
+                out.print("l'output : "+executeMethode(map));
+                check=1;
             }
         }
+        if (check==0){
+                out.print("L'url : "+ urlkey +" n'est pas associé à une methode dans une classe annotée controller \n");
+        }
+    }
+    public static String executeMethode(Mapping map) throws Exception{
+        String clname=map.getClassName();
+        String mthname=map.getMethodName();
+        Class<?> cl=Class.forName(clname);
+        Method mth=cl.getDeclaredMethod(mthname);
+        Object classrep=cl.newInstance();
+        Object rep=mth.invoke(classrep);
+        return (String)rep;
     }
 }
