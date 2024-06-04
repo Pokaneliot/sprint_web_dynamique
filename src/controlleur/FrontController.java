@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.ServletException;
 import java.io.PrintWriter;
 import java.util.Map;
+import mg.pokaneliot.util.ModelAndView;
 import mg.pokaneliot.util.Mapping;
 import mg.pokaneliot.util.Scanner;
 
@@ -53,8 +54,8 @@ public class FrontController extends HttpServlet {
          if(obj instanceof String){
             out.print((String)obj);
         }
-        else if(obj instanceof ModelView){
-            ModelView modelV = (ModelView)obj;
+        else if(obj instanceof ModelAndView){
+            ModelAndView modelV = (ModelAndView)obj;
             Map<String,Object>map = modelV.getData();
             RequestDispatcher dispat = req.getRequestDispatcher(modelV.getViewUrl());
             for(Map.Entry<String,Object> entry : map.entrySet()){
