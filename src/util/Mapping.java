@@ -2,11 +2,11 @@ package mg.pokaneliot.util;
 
 public class Mapping {
 	String className;
-	String methodeName;
+	String methodName;
 	
-	public Mapping(String cl, string meth){
+	public Mapping(String cl, String meth){
 		this.setClassName(cl);
-		this.setMethodeName(meth);
+		this.setMethodName(meth);
 	}
 	public void setClassName(String cl){
 		this.className=cl;
@@ -14,11 +14,11 @@ public class Mapping {
 	public String getClassName(){
 		return this.className;
 	}
-	public void setMethodeName(String meth){
-		this.methodeName=meth;
+	public void setMethodName(String meth){
+		this.methodName=meth;
 	}
-	public String getMethodeName(){
-		return this.methodeName;
+	public String getMethodName(){
+		return this.methodName;
 	}
 	
 }
