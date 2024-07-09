@@ -19,6 +19,7 @@ import jakarta.servlet.ServletException;
 import mg.pokaneliot.util.ModelAndView;
 import mg.pokaneliot.util.Mapping;
 import mg.pokaneliot.util.Scanner;
+import mg.pokaneliot.util.MySession;
 
 import mg.pokaneliot.annotation.Param;
 
@@ -139,6 +140,11 @@ public class FrontController extends HttpServlet {
                         Class<?> paramType = p.getType(); //recuperation du type du parametre
                         String typeName = paramType.getSimpleName(); //type du parametre
                         String annot;
+                        if(paramType.getSimpleName().compareTo("MySession") == 0){
+                            HttpSession session = req.getSession();
+                            MySession sess = (MySession)(paramType.getDeclaredConstructor(HttpSession.class).newInstance(session));
+                            paramO.add(sess);
+                        }
                         if(p.getAnnotation(Param.class) != null){ //si le parametre possede une annotation
                             annot = p.getAnnotation(Param.class).name(); //on prend la valeur de l'annnotation
                         }else{
