@@ -1,12 +1,14 @@
 package mg.pokaneliot.util;
+import java.util.ArrayList;
+
 
 public class Mapping {
 	String className;
-	String methodName;
+	ArrayList<VerbAction> listVA;
 	
-	public Mapping(String cl, String meth){
+	public Mapping(String cl){
 		this.setClassName(cl);
-		this.setMethodName(meth);
+		listVA=new ArrayList<VerbAction>();
 	}
 	public void setClassName(String cl){
 		this.className=cl;
@@ -14,11 +16,30 @@ public class Mapping {
 	public String getClassName(){
 		return this.className;
 	}
-	public void setMethodName(String meth){
-		this.methodName=meth;
+	public void setListVA(ArrayList<VerbAction> va){
+		this.listVA=va;
 	}
-	public String getMethodName(){
-		return this.methodName;
+	public ArrayList<VerbAction> getListVA(){
+		return this.listVA;
+	}
+	public void addVA(VerbAction va){
+		listVA.add(va);
+	}
+	public boolean contains(String verb){
+		for (VerbAction va:listVA) {
+			if (va.getVerb().compareToIgnoreCase(verb)==0) {
+				return true;
+			}
+		}
+		return false;
+	}
+	public String getMethodName(String verb){
+		for (VerbAction va:listVA) {
+			if (va.getVerb().compareToIgnoreCase(verb)==0) {
+				return va.getAction();
+			}
+		}
+		return null;
 	}
 	
 }

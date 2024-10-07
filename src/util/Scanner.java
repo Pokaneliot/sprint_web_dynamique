@@ -9,6 +9,9 @@ import java.lang.reflect.Field;
 
 import mg.pokaneliot.annotation.Controller;
 import mg.pokaneliot.annotation.Get;
+import mg.pokaneliot.annotation.Post;
+import mg.pokaneliot.annotation.Url;
+
 
 public class Scanner {
     public static ArrayList<Class> scanCurrentProjet(String packageName)throws Exception{
@@ -93,16 +96,24 @@ public class Scanner {
                 Class cl = (Class)c;
                 Method[] listMethod = cl.getDeclaredMethods();
                 for(Method me : listMethod){
-                    Get a = me.getAnnotation(Get.class);
-                    if(a != null){
-                        if(res.containsKey(a.url())){
-                            message.add(a.url());
+                    Url url = me.getAnnotation(Url.class);
+                    if(url != null){
+                        String verb=Scanner.getVerb(me);
+                        VerbAction va=new VerbAction(me.getName(),verb);
+                        if(res.containsKey(url.url())){
+                            Mapping map=(Mapping)res.get(url.url());
+                            if (!map.contains(verb)) {
+                                map.addVA(va);                                
+                            }
+                            else{
+                                message.add(url.url());
+                            }
                         }
                         else {
                             String className = cl.getName();
-                            String methodName = me.getName();
-                            Mapping m = new Mapping(className,methodName);
-                            res.put(a.url(),m);
+                            Mapping m = new Mapping(className);
+                            m.addVA(va);
+                            res.put(url.url(),m);
                         }
                     }
                 }
@@ -192,6 +203,13 @@ public class Scanner {
             } 
         }
         return null;
+    }
+    public static String getVerb(Method m){
+        String res="GET";
+        if (m.getAnnotation(Post.class)!=null) {
+            res="POST";
+        }
+        return res;
     }
 
 
