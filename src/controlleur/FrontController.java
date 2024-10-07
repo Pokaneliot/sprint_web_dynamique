@@ -11,6 +11,7 @@ import java.util.Enumeration;
 import java.util.HashMap;
 
 import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.RequestDispatcher;
@@ -46,14 +47,14 @@ public class FrontController extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse rep) throws ServletException, IOException {
-        processRequest(req, rep);
+        processRequest(req, rep,"GET");
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse rep) throws ServletException, IOException {
-        processRequest(req, rep);
+        processRequest(req, rep,"POST");
     }
 
-    protected void processRequest(HttpServletRequest req, HttpServletResponse rep)
+    protected void processRequest(HttpServletRequest req, HttpServletResponse rep,String verb)
             throws ServletException, IOException {
         PrintWriter out = rep.getWriter();
         Map<String, String> paramMap = new HashMap<>();
@@ -67,8 +68,8 @@ public class FrontController extends HttpServlet {
             } else {
                 try {
                     Mapping mapping = this.methodExist(url);//note a moi même comme mettre l'urltarget comme type de retour de la fonction methodExist
-                    Method m=getMethodTarget(mapping);
-                    Object obj = executeMethode(m, req);
+                    Method m=getMethodTarget(mapping,verb);
+                    Object obj = executeMethode(mapping,m, req);
                     if (m.getAnnotation(RestApi.class)!=null) {
                         json(rep,obj);
                     }
@@ -86,21 +87,25 @@ public class FrontController extends HttpServlet {
         out.close();
 
     }
-    protected Method getMethodTarget(Mapping target)throws Exception{
+    protected Method getMethodTarget(Mapping target,String verb)throws Exception{
         String className = target.getClassName(); //nom de la classe contenu dans le mapping
-        String methodeName = target.getMethodName(); //nom de la methode a invoquée
+        String methodeName =target.getMethodName(verb);  //nom de la methode a invoquée
+        if (methodeName==null) {
+            throw new Exception("Une requete de type "+verb+" est attendue pour la methode");
+        }
         Class<?>cl = Class.forName(className);//Recuperation de la classe qui va invoquer la methode
         Method[] mes = cl.getDeclaredMethods();//Recuperation de la liste des methodes
 
         //recherche de la methode correspondante
         for(Method m : mes){
-            if(target.getMethodName().compareTo(m.getName()) == 0){
+            if(methodeName.compareTo(m.getName()) == 0){
                 return m;
             }
         }
+        throw new Exception("La methode n'existe point");
 
     }
-    protected void text(HttpServletRequest req, HttpServletResponse rep,Object obj)throws ServletException, IOException 
+    protected void text(HttpServletRequest req, HttpServletResponse rep,Object obj)throws ServletException, IOException, Exception 
     {
         PrintWriter out = rep.getWriter();
         if (obj instanceof String) {
@@ -120,7 +125,7 @@ public class FrontController extends HttpServlet {
             dispat.forward(req, rep);
         }
     }
-    protected void json(HttpServletResponse rep,Object obj)throws ServletException, IOException 
+    protected void json(HttpServletResponse rep,Object obj)throws ServletException, IOException, Exception 
     {
         rep.setContentType("application/json");
         rep.setCharacterEncoding("UTF-8");
@@ -145,8 +150,11 @@ public class FrontController extends HttpServlet {
         out.close();
     }
 
-    public static Object executeMethode(Method me,HttpServletRequest req) throws Exception{
-        //recuperation des noms des parametres
+    public static Object executeMethode(Mapping map,Method me,HttpServletRequest req) throws Exception{
+        String className=map.getClassName();
+        Class<?>cl = Class.forName(className);
+        String methodeName= me.getName();
+        //recuperation des noms des parametres 
         Enumeration<String> paramNames = req.getParameterNames();
         ArrayList<String> parametersNames = new ArrayList<>();
         while(paramNames.hasMoreElements()){
