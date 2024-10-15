@@ -1,14 +1,16 @@
 package mg.pokaneliot.util;
-import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 
 public class Mapping {
 	String className;
-	ArrayList<VerbAction> listVA;
+	Set<VerbAction> listVA;
 	
 	public Mapping(String cl){
 		this.setClassName(cl);
-		listVA=new ArrayList<VerbAction>();
+		listVA=new HashSet<VerbAction>();
 	}
 	public void setClassName(String cl){
 		this.className=cl;
@@ -16,10 +18,10 @@ public class Mapping {
 	public String getClassName(){
 		return this.className;
 	}
-	public void setListVA(ArrayList<VerbAction> va){
+	public void setListVA(Set<VerbAction> va){
 		this.listVA=va;
 	}
-	public ArrayList<VerbAction> getListVA(){
+	public Set<VerbAction> getListVA(){
 		return this.listVA;
 	}
 	public void addVA(VerbAction va){
