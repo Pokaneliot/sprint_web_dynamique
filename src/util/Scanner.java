@@ -15,42 +15,6 @@ import mg.pokaneliot.annotation.Url;
 
 public class Scanner {
     public static ArrayList<Class> scanCurrentProjet(String packageName)throws Exception{
-        /*ArrayList<Class> res = new ArrayList<>();
-        try {
-            Thread currentThread = Thread.currentThread();
-            ClassLoader classLoader = currentThread.getContextClassLoader();
-            String path = packageName.replace(".", "/");
-
-            // Decode URL-encoded spaces
-            path = URLDecoder.decode(path, "UTF-8");
-
-            System.out.println("Scanning path: " + path);
-            URL resource = classLoader.getResource(path);
-            if (resource == null) {
-                throw new Exception("The package " + packageName + " does not exist in the project");
-            }
-
-            File directory = new File(resource.getFile());
-            if (!directory.exists() || !directory.isDirectory()) {
-                throw new Exception("The package " + packageName + " does not exist in the project");
-            }
-
-            System.out.println("Number of files: " + directory.listFiles().length);
-            for (File file : directory.listFiles()) {
-                if (file.getName().endsWith(".class")) {
-                    String className = packageName + "." + file.getName().substring(0, file.getName().length() - 6);
-                    Class<?> cl = Class.forName(className);
-                    if (cl.isAnnotationPresent(Controller.class)) {
-                        res.add(cl);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            String message = "An error occurred while scanning the package " + packageName;
-            throw new Exception(message, e);
-        }
-        return res;*/
          ArrayList<Class>res = new ArrayList<>();
         try{
             Thread currentThread = Thread.currentThread();

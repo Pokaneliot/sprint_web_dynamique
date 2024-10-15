@@ -59,7 +59,7 @@ public class FrontController extends HttpServlet {
         PrintWriter out = rep.getWriter();
         Map<String, String> paramMap = new HashMap<>();
         if (message != null) {
-            out.println(message);
+            this.displayError(message,"404",rep);
         } else {
             String url = req.getRequestURL().toString();
             if (!visited) {
@@ -78,7 +78,7 @@ public class FrontController extends HttpServlet {
                     }
 
                 } catch (Exception e) {
-                    out.print(e.getMessage());
+                    this.displayError(e.getMessage(),"404",rep);
                 }
             }
 
@@ -102,7 +102,7 @@ public class FrontController extends HttpServlet {
                 return m;
             }
         }
-        throw new Exception("La methode n'existe point");
+        throw new Exception("Erreur: La methode n'existe point");
 
     }
     protected void text(HttpServletRequest req, HttpServletResponse rep,Object obj)throws ServletException, IOException, Exception 
@@ -237,7 +237,7 @@ public class FrontController extends HttpServlet {
     public void viewExist(String viewUrl) throws Exception {
         ArrayList<String> listView = this.urlView;
         if (!listView.contains(viewUrl)) {
-            throw new Exception("Erreur 404 : La page " + viewUrl + " n'existe pas!");
+            throw new Exception("Erreur : La page " + viewUrl + " n'existe pas!");
         }
     }
     //si la methodExist
@@ -253,7 +253,7 @@ public class FrontController extends HttpServlet {
             urlTarget = "/" + urlParts[urlParts.length - (i + 1)] + urlTarget;
             i++;
         }
-        throw new Exception("Erreur 404 : L'url " + urlMethod + " n'est associé à aucune méthode du projet");
+        throw new Exception("Erreur: L'url " + urlMethod + " n'est associé à aucune méthode du projet");
     }
 
 
@@ -269,4 +269,36 @@ public class FrontController extends HttpServlet {
         }
         return null;
     }
+
+    protected void displayError(String error,String code,HttpServletResponse rep) throws IOException,ServletException{
+        rep.setContentType("text/html");
+        PrintWriter out = rep.getWriter();
+
+        //page 
+        out.println("<!DOCTYPE html>");
+        out.println("<html>");
+        out.println("<head>");
+        out.println("<title>Error</title>");
+
+        // CSS intégré dans la balise <style>
+        out.println("<style>");
+        out.println("body { font-family: Arial, sans-serif; background-color: #f0f0f0; }");
+        out.println("h1 { color: red; }");
+        out.println("p { font-size: 16px; }");
+        out.println("ul { list-style-type: none; }");
+        out.println("li { background-color: #e0e0e0; margin: 5px 0; padding: 10px; border-radius: 5px; }");
+        out.println("</style>");
+        //fin style 
+
+        out.println("</head>");
+        out.println("<body>");
+        out.println("<h1>Vous avez rencontre un probleme</h1>");
+        out.println("<p><strong>"+code+"</strong></p>");
+        out.println("<p><strong>"+error+"</strong></p>");
+        out.println("<p>pour plus de details, consulter la console</p>");
+        out.println("</ul>");
+        out.println("</body>");
+        out.println("</html>");
+    }
+
 }
