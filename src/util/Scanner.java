@@ -2,18 +2,23 @@ package mg.pokaneliot.util;
 
 import java.util.Map;
 import java.util.ArrayList;
-import java.util.MultipartFile;
 import java.util.HashMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.Part;
 
 import mg.pokaneliot.annotation.Controller;
 import mg.pokaneliot.annotation.Get;
 import mg.pokaneliot.annotation.Post;
 import mg.pokaneliot.annotation.Url;
+import mg.pokaneliot.util.MultipartFile;
 
 
 public class Scanner {
@@ -135,8 +140,8 @@ public class Scanner {
 
     //conversion des parametres
     public static Object convertParameterValue(Class<?> targetType, HttpServletRequest req,String argName) throws Exception{
-        String erreur = "Une valeur de type "+targetType.getSimpleName()+" est attendue pour l'entrée: "+argName+". Valeur trouvée : "+parameterValue;
         String parameterValue=req.getParameter(argName);
+        String erreur = "Une valeur de type "+targetType.getSimpleName()+" est attendue pour l'entrée: "+argName+". Valeur trouvée : "+parameterValue;
         if (targetType == String.class) {
             return parameterValue;
         } else if (targetType == int.class || targetType == Integer.class) {

@@ -1,3 +1,5 @@
+package mg.pokaneliot.util;
+
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 
