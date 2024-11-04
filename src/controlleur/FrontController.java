@@ -196,7 +196,7 @@ public class FrontController extends HttpServlet {
                                 passage.add(annot);//marquer comme passer
                             }
                             Class<?> typ = Scanner.takeTypeField(paramType,argName); //recuperation du type de l'argument
-                            Object value = Scanner.convertParameterValue(typ, req.getParameter(par),argName);//Conversion du parametre
+                            Object value = Scanner.convertParameterValue(typ, req,argName);//Conversion du parametre
                             Object inst = paramO.get(paramO.size() - 1); //prise du dernier parametre
                             String methName = "set"+argName.substring(0,1).toUpperCase() + argName.substring(1); //nom du setteur correspondant
                             Method set;
@@ -210,7 +210,7 @@ public class FrontController extends HttpServlet {
                     } else{
                         argName = paramParts[0];
                         if(argName.compareTo(annot) == 0){ // si il y a une correspondance, on stocke la valeur dans une liste
-                            Object value = Scanner.convertParameterValue(paramType, req.getParameter(argName),argName);//Conversion du parametre
+                            Object value = Scanner.convertParameterValue(paramType, req,argName);//Conversion du parametre
                             paramO.add(value); //ajout du parametre
                             break;
                         }
@@ -231,7 +231,6 @@ public class FrontController extends HttpServlet {
         }
         return obj;
     }
-
     
     //si la vue exist
     public void viewExist(String viewUrl) throws Exception {

@@ -2,10 +2,13 @@ package mg.pokaneliot.util;
 
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.MultipartFile;
 import java.util.HashMap;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
+
+import jakarta.servlet.http.Part;
 
 import mg.pokaneliot.annotation.Controller;
 import mg.pokaneliot.annotation.Get;
@@ -131,8 +134,9 @@ public class Scanner {
     }
 
     //conversion des parametres
-    public static Object convertParameterValue(Class<?> targetType, String parameterValue,String argName) throws Exception{
+    public static Object convertParameterValue(Class<?> targetType, HttpServletRequest req,String argName) throws Exception{
         String erreur = "Une valeur de type "+targetType.getSimpleName()+" est attendue pour l'entrée: "+argName+". Valeur trouvée : "+parameterValue;
+        String parameterValue=req.getParameter(argName);
         if (targetType == String.class) {
             return parameterValue;
         } else if (targetType == int.class || targetType == Integer.class) {
@@ -162,6 +166,28 @@ public class Scanner {
         } else if (targetType == boolean.class || targetType == Boolean.class) {
             try{
                 return Boolean.parseBoolean(parameterValue);
+            } catch(Exception e){
+                throw new Exception(erreur);
+            } 
+        } else if (targetType== MultipartFile.class) {
+            try{
+                 // Retrieve the file part from the request
+                Part filePart = req.getPart(argName); // argname matches the name attribute in the form
+
+                // Get the file name
+                String fileName = Paths.get(filePart.getSubmittedFileName()).getFileName().toString();
+
+                // Get the content type
+                String contentType = filePart.getContentType();
+
+                // Get the input stream of the uploaded file
+                InputStream fileContent = filePart.getInputStream();
+
+                // Convert the input stream to bytes
+                byte[] fileBytes = fileContent.readAllBytes();
+                fileContent.close();
+
+                return new MultipartFile(fileName, contentType, fileBytes);
             } catch(Exception e){
                 throw new Exception(erreur);
             } 

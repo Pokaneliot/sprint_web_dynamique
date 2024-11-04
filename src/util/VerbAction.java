@@ -29,7 +29,7 @@ public class VerbAction {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         VerbAction verbAction = (VerbAction) o;
-        return Objects.equals(action, verbAction.action) && Objects.equals(verb, verbAction.verb);
+        return Objects.equals(action, verbAction.getAction()) && Objects.equals(verb, verbAction.getVerb());
     }
 
     @Override
