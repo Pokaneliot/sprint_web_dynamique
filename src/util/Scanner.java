@@ -4,6 +4,10 @@ import java.util.Map;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+import java.text.SimpleDateFormat;
+
+import java.sql.Date;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Field;
 
@@ -19,6 +23,8 @@ import mg.pokaneliot.annotation.Get;
 import mg.pokaneliot.annotation.Post;
 import mg.pokaneliot.annotation.Url;
 import mg.pokaneliot.util.MultipartFile;
+import mg.pokaneliot.annotation.type.*;
+
 
 
 public class Scanner {
@@ -138,6 +144,16 @@ public class Scanner {
         return res;
     }
 
+     public static Field takeField(Class<?> model, String name) throws Exception{
+        Field target = null;
+        try{
+            target = model.getDeclaredField(name);
+        } catch(Exception e){
+            throw e;
+        }
+        return target;
+    }
+
     //conversion des parametres
     public static Object convertParameterValue(Class<?> targetType, HttpServletRequest req,String argName) throws Exception{
         String parameterValue=req.getParameter(argName);
@@ -198,6 +214,59 @@ public class Scanner {
             } 
         }
         return null;
+    }
+    //conversion des parametres
+    public static Object convertParameterValueWithAnnot(Class<?> model, HttpServletRequest req,String argName) throws Exception{
+        String parameterValue=req.getParameter(argName);
+        String targetType = "";
+        String erreur = "Une valeur de type %s est attendue pour l'entrée: "+argName+". Valeur trouvée : %s";
+        Field f = takeField(model, argName);
+        if(f.getDeclaredAnnotation(DateSQL.class) != null){ //type date
+            String format = f.getDeclaredAnnotation(DateSQL.class).format();
+            return convertDate(parameterValue, format);
+        } else if(f.getDeclaredAnnotation(Numeric.class) != null){ //type numeri
+            try{
+                return Integer.parseInt(parameterValue);
+            }catch(Exception ie){
+                try{
+                    return Double.parseDouble(parameterValue);
+                } catch(Exception de){
+                    try{
+                        return Float.parseFloat(parameterValue);
+                    } catch(Exception fe){
+                        try{
+                            return Long.parseLong(parameterValue);
+                        }catch(Exception e){
+                            targetType = "Numeric";
+                            throw new Exception(String.format(erreur,targetType,parameterValue));
+                        }
+                    }
+                }
+            } 
+        } else if(f.getDeclaredAnnotation(Text.class) != null){ //type string
+            return parameterValue;
+        } else if(f.getDeclaredAnnotation(Bool.class) != null){ //type boolean
+            try{
+                return Boolean.parseBoolean(parameterValue);
+            }catch(Exception e){
+                throw new Exception(String.format(erreur, "Boolean",parameterValue));
+            }
+        } else{ //si pas d'annotation
+            Class<?> targetedType = takeTypeField(model, argName);
+            return convertParameterValue(targetedType, req, argName);
+        }
+    }
+
+    public static Date convertDate(String date,String format) throws Exception{
+        Date d = null;
+        try{
+            SimpleDateFormat dF = new SimpleDateFormat(format);
+            java.util.Date dT = dF.parse(date);
+            d = new Date(dT.getTime());
+        }catch(Exception e){
+            throw e;
+        }
+        return d;
     }
     public static String getVerb(Method m){
         String res="GET";
