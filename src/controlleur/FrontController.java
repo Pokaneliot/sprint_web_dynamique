@@ -168,6 +168,7 @@ public class FrontController extends HttpServlet {
         if(countParam > 1){ //si la methode possede des parametres
             ArrayList<Object> paramO = new ArrayList<>();
             ArrayList<String>passage = new ArrayList<>(); //pour verifier si on est pas deja passer par le parametre
+            boolean hasError = false;
             for(Parameter p : parms){
                 Class<?> paramType = p.getType(); //recuperation du type du parametre
                 String typeName = paramType.getSimpleName(); //type du parametre
@@ -181,7 +182,8 @@ public class FrontController extends HttpServlet {
                     annot = p.getAnnotation(Param.class).name(); //on prend la valeur de l'annnotation
                 }else{
                     annot = p.getName(); // on prend le nom du parametre
-                } 
+                }
+                Map<String,String> errorMessage = new HashMap<>(); 
                 for(String par : parametersNames){
                     String[] paramParts = par.split("_");//separation du parametre pour savoir si on a besoin d'un objet
                     String argName = "";
@@ -196,16 +198,25 @@ public class FrontController extends HttpServlet {
                                 passage.add(annot);//marquer comme passer
                             }
                             Class<?> typ = Scanner.takeTypeField(paramType,argName); //recuperation du type de l'argument
-                            Object value = Scanner.convertParameterValue(typ, req,argName);//Conversion du parametre
-                            Object inst = paramO.get(paramO.size() - 1); //prise du dernier parametre
-                            String methName = "set"+argName.substring(0,1).toUpperCase() + argName.substring(1); //nom du setteur correspondant
-                            Method set;
-                            if (value instanceof Integer) {
-                                set = paramType.getMethod(methName, int.class);    
-                            } else{
-                                set = paramType.getMethod(methName, value.getClass());   
+                            Object value = null;
+                            try{
+                                value = Scanner.convertParameterValueWithAnnot(paramType, req, argName); //conversion de la valeur avec des annotations
+                                Object inst = paramO.get(paramO.size() - 1); //prise du dernier parametre
+                                String methName = "set"+argName.substring(0,1).toUpperCase() + argName.substring(1); //nom du setteur correspondant
+                                Method set;
+                                if (value instanceof Integer) {
+                                    set = paramType.getMethod(methName, int.class);    
+                                } else{
+                                    set = paramType.getMethod(methName, value.getClass());   
+                                }
+                                set.invoke(inst, value);
+                                
+                            } catch(Exception e){
+                                //stockage des erreur
+                                hasError = true;
+                                errorMessage.put(par,e.getMessage());
+
                             }
-                            set.invoke(inst,value);
                         }
                     } else{
                         argName = paramParts[0];
@@ -216,9 +227,11 @@ public class FrontController extends HttpServlet {
                         }
                     }  
                 }
-            }
-            for(int i = 0; i<paramO.size(); i++){
-                System.out.println(paramO.get(i));
+                if(hasError){
+                    errorMessage.forEach((key, value) -> System.out.println("Erreur de l'attribut "+key+" : "+value));
+                    throw new Exception("validation attribut non valide veuillez voir la ligne de commande");
+                }
+
             }
             Object[] p = paramO.toArray(); //conversion de la liste de valeur en tableau d'objet
             obj = me.invoke(instance,p); //invocation de la methode avec parametre
