@@ -28,6 +28,7 @@ import mg.pokaneliot.annotation.Param;
 import mg.pokaneliot.annotation.RestApi;
 import mg.pokaneliot.annotation.ErrorInput;
 import mg.pokaneliot.annotation.AuthMethod;
+import mg.pokaneliot.annotation.AuthClass;
 
 public class FrontController extends HttpServlet {
 	Map<String, Mapping> urlMap;
@@ -75,7 +76,7 @@ public class FrontController extends HttpServlet {
             } else {
                 try {
                     Mapping mapping = this.methodExist(url);//note a moi même comme mettre l'urltarget comme type de retour de la fonction methodExist
-                    Method m=getMethodTarget(mapping,verb);
+                    Method m=getMethodTarget(req,mapping,verb);
                     verifAuth(req,m);
                     Object obj = executeMethode(mapping,m, req, rep);
                     if (m.getAnnotation(RestApi.class)!=null) {
@@ -101,18 +102,31 @@ public class FrontController extends HttpServlet {
         String usertype=(String)session.getAttribute(param);
         if(action.getAnnotation(AuthMethod.class) != null){ 
             String auth = action.getAnnotation(AuthMethod.class).type();
-            if(auth.equals(usertype)==false){
+            if(auth.equals(usertype)==false ){
                 throw new Exception("Vous n'avez pas accès à la methode"); 
             }
         }
     }
-    protected Method getMethodTarget(Mapping target,String verb)throws Exception{
+    protected void verifAuth(HttpServletRequest req, Class<?> cl) throws Exception{
+        HttpSession session = req.getSession();
+        String param = this.getInitParameter("sessionUser");
+        String usertype=(String)session.getAttribute(param);
+        if(cl.getAnnotation(AuthClass.class) != null){ 
+            String auth = cl.getAnnotation(AuthClass.class).type();
+            if(auth.equals(usertype)==false){
+                throw new Exception("Vous n'avez pas accès à une class utilisé."); 
+            }
+        }
+    }
+    protected Method getMethodTarget(HttpServletRequest req, Mapping target,String verb)throws Exception{
         String className = target.getClassName(); //nom de la classe contenu dans le mapping
+
         String methodeName =target.getMethodName(verb);  //nom de la methode a invoquée
         if (methodeName==null) {
             throw new Exception("Une requete de type "+verb+" est attendue pour la methode");
         }
         Class<?>cl = Class.forName(className);//Recuperation de la classe qui va invoquer la methode
+        verifAuth(req,cl);
         Method[] mes = cl.getDeclaredMethods();//Recuperation de la liste des methodes
 
         //recherche de la methode correspondante
