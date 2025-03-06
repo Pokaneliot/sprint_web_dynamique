@@ -27,6 +27,7 @@ import mg.pokaneliot.util.MySession;
 import mg.pokaneliot.annotation.Param;
 import mg.pokaneliot.annotation.RestApi;
 import mg.pokaneliot.annotation.ErrorInput;
+import mg.pokaneliot.annotation.AuthMethod;
 
 public class FrontController extends HttpServlet {
 	Map<String, Mapping> urlMap;
@@ -75,6 +76,7 @@ public class FrontController extends HttpServlet {
                 try {
                     Mapping mapping = this.methodExist(url);//note a moi même comme mettre l'urltarget comme type de retour de la fonction methodExist
                     Method m=getMethodTarget(mapping,verb);
+                    verifAuth(req,m);
                     Object obj = executeMethode(mapping,m, req, rep);
                     if (m.getAnnotation(RestApi.class)!=null) {
                         json(rep,obj);
@@ -92,6 +94,17 @@ public class FrontController extends HttpServlet {
         out.flush();
         out.close();
 
+    }
+    protected void verifAuth(HttpServletRequest req, Method action) throws Exception{
+        HttpSession session = req.getSession();
+        String param = this.getInitParameter("sessionUser");
+        String usertype=(String)session.getAttribute(param);
+        if(action.getAnnotation(AuthMethod.class) != null){ 
+            String auth = action.getAnnotation(AuthMethod.class).type();
+            if(auth.equals(usertype)==false){
+                throw new Exception("Vous n'avez pas accès à la methode"); 
+            }
+        }
     }
     protected Method getMethodTarget(Mapping target,String verb)throws Exception{
         String className = target.getClassName(); //nom de la classe contenu dans le mapping
