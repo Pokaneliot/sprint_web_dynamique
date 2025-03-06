@@ -142,6 +142,10 @@ public class FrontController extends HttpServlet {
     {
         PrintWriter out = rep.getWriter();
         if (obj instanceof String) {
+            if(((String) obj).startsWith("redirect:")){
+                String context=req.getContextPath();
+                rep.sendRedirect(context+((String) obj).replace("redirect:",""));
+            }
             out.print((String) obj);
             out.flush();
             out.close();
