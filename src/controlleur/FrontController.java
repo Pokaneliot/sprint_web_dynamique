@@ -26,6 +26,7 @@ import mg.pokaneliot.util.MySession;
 
 import mg.pokaneliot.annotation.Param;
 import mg.pokaneliot.annotation.RestApi;
+import mg.pokaneliot.annotation.ErrorInput;
 
 public class FrontController extends HttpServlet {
 	Map<String, Mapping> urlMap;
@@ -47,17 +48,22 @@ public class FrontController extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse rep) throws ServletException, IOException {
-        processRequest(req, rep,"GET");
+        processRequest(req, rep);
     }
 
     protected void doPost(HttpServletRequest req, HttpServletResponse rep) throws ServletException, IOException {
-        processRequest(req, rep,"POST");
+        processRequest(req, rep);
     }
 
-    protected void processRequest(HttpServletRequest req, HttpServletResponse rep,String verb)
+    protected void processRequest(HttpServletRequest req, HttpServletResponse rep)
             throws ServletException, IOException {
+
         PrintWriter out = rep.getWriter();
         Map<String, String> paramMap = new HashMap<>();
+        String verb=req.getMethod();
+        if (req.getAttribute("errorInput")!=null) {
+            verb="GET";
+        }
         if (message != null) {
             this.displayError(message,"404",rep);
         } else {
@@ -69,7 +75,7 @@ public class FrontController extends HttpServlet {
                 try {
                     Mapping mapping = this.methodExist(url);//note a moi même comme mettre l'urltarget comme type de retour de la fonction methodExist
                     Method m=getMethodTarget(mapping,verb);
-                    Object obj = executeMethode(mapping,m, req);
+                    Object obj = executeMethode(mapping,m, req, rep);
                     if (m.getAnnotation(RestApi.class)!=null) {
                         json(rep,obj);
                     }
@@ -150,7 +156,7 @@ public class FrontController extends HttpServlet {
         out.close();
     }
 
-    public static Object executeMethode(Mapping map,Method me,HttpServletRequest req) throws Exception{
+    public static Object executeMethode(Mapping map,Method me,HttpServletRequest req,HttpServletResponse rep) throws Exception{
         String className=map.getClassName();
         Class<?>cl = Class.forName(className);
         String methodeName= me.getName();
@@ -228,8 +234,9 @@ public class FrontController extends HttpServlet {
                     }  
                 }
                 if(hasError){
-                    errorMessage.forEach((key, value) -> System.out.println("Erreur de l'attribut "+key+" : "+value));
-                    throw new Exception("validation attribut non valide veuillez voir la ligne de commande");
+                    /*errorMessage.forEach((key, value) -> System.out.println("Erreur de l'attribut "+key+" : "+value));*/
+                    /*throw new Exception("validation attribut non valide veuillez voir la ligne de commande");*/
+                    displayErrorInput(me,req,rep,errorMessage);
                 }
 
             }
@@ -243,6 +250,20 @@ public class FrontController extends HttpServlet {
             throw new Exception("Erreur : la methode "+methodeName+" renvoie un objet de type "+obj.getClass().getSimpleName()+".\n Types attendus : ModelAndView, String");
         }
         return obj;
+    }
+
+    //display input error
+    public static void displayErrorInput(Method me,HttpServletRequest req,HttpServletResponse rep,Map<String,String> errors )throws Exception{
+        String url=null;
+        if(me.getAnnotation(ErrorInput.class) != null){
+            url = me.getAnnotation(ErrorInput.class).url();
+            RequestDispatcher dispat = req.getRequestDispatcher(url);
+            req.setAttribute("errorInput",errors);
+            dispat.forward(req, rep);
+        }
+        else{
+            throw new Exception("Erreur : validation attribut non valide.\n La methode "+me.getName()+" ne contient pas d'annotation \"ErrorInput\".");
+        }
     }
     
     //si la vue exist
