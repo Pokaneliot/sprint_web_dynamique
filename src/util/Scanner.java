@@ -158,6 +158,7 @@ public class Scanner {
     public static Object convertParameterValue(Class<?> targetType, HttpServletRequest req,String argName) throws Exception{
         String parameterValue=req.getParameter(argName);
         String erreur = "Une valeur de type "+targetType.getSimpleName()+" est attendue pour l'entrée: "+argName+". Valeur trouvée : "+parameterValue;
+
         if (targetType == String.class) {
             return parameterValue;
         } else if (targetType == int.class || targetType == Integer.class) {
@@ -216,15 +217,22 @@ public class Scanner {
         return null;
     }
     //conversion des parametres
+    //ne pas directement throw les exception dans les catch mais stocker dans un tableau d'abord et c'est le tableau qu'on throw 
     public static Object convertParameterValueWithAnnot(Class<?> model, HttpServletRequest req,String argName) throws Exception{
         String parameterValue=req.getParameter(argName);
         String targetType = "";
-        String erreur = "Une valeur de type %s est attendue pour l'entrée: "+argName+". Valeur trouvée : %s";
+        String erreur = "Une valeur de type %s est attendue pour l'entrée: "+argName+". Valeur trouvée : %s \n";
+        String erreurs="";
         Field f = takeField(model, argName);
         if(f.getDeclaredAnnotation(DateSQL.class) != null){ //type date
             String format = f.getDeclaredAnnotation(DateSQL.class).format();
-            return convertDate(parameterValue, format);
-        } else if(f.getDeclaredAnnotation(Numeric.class) != null){ //type numeri
+            try{
+                return convertDate(parameterValue, format);
+            }catch(Exception e){
+                erreurs+=String.format(erreur, "DateSql",parameterValue);
+            }
+        }
+        if(f.getDeclaredAnnotation(Numeric.class) != null){ //type numeri
             try{
                 return Integer.parseInt(parameterValue);
             }catch(Exception ie){
@@ -238,22 +246,28 @@ public class Scanner {
                             return Long.parseLong(parameterValue);
                         }catch(Exception e){
                             targetType = "Numeric";
-                            throw new Exception(String.format(erreur,targetType,parameterValue));
+                            erreurs+=String.format(erreur,targetType,parameterValue);
                         }
                     }
                 }
             } 
-        } else if(f.getDeclaredAnnotation(Text.class) != null){ //type string
+        }
+        if(f.getDeclaredAnnotation(Text.class) != null){ //type string
             return parameterValue;
-        } else if(f.getDeclaredAnnotation(Bool.class) != null){ //type boolean
+        }
+        if(f.getDeclaredAnnotation(Bool.class) != null){ //type boolean
             try{
                 return Boolean.parseBoolean(parameterValue);
             }catch(Exception e){
-                throw new Exception(String.format(erreur, "Boolean",parameterValue));
+                erreurs+=String.format(erreur, "Boolean",parameterValue);
             }
-        } else{ //si pas d'annotation
+        }
+        if(erreurs==""){ 
             Class<?> targetedType = takeTypeField(model, argName);
             return convertParameterValue(targetedType, req, argName);
+        }
+        else{
+            throw new Exception(erreurs);
         }
     }
 
